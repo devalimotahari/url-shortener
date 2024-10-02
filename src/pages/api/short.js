@@ -29,7 +29,13 @@ export default async function handler(req, res) {
                       return res.status(200).json({ shortUrl: generateFullUrl(found.shortUrl) });
                     }
 
-                    const randomStr = getRandomString(5);
+                    let randomStr;
+                    let isDuplicate;
+                    do {
+                      randomStr = getRandomString(5);
+                      const shorten = await collection.findOne({ shortUrl: randomStr });
+                      isDuplicate = !!shorten;
+                    } while (isDuplicate);
 
                     await collection.insertOne({
                         shortUrl: randomStr,
