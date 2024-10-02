@@ -38,6 +38,8 @@ npm install
 
 ```dotenv
 MONGODB_URI="your-mongodb-uri-here"
+SITE_URL="http://localhost:3000"
+HOME_SITE_URL="https://google.com"
 ```
 
 ### Start the Application
