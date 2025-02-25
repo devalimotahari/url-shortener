@@ -1,40 +1,48 @@
-import validUrl from "valid-url"; // Import a URL validation library
-import clientPromise from "../../lib/mongodb";
+import validUrl from 'valid-url'; // Import a URL validation library
+import clientPromise from '../../lib/mongodb';
 
 const siteUrl = process.env.SITE_URL;
 
 
 const generateFullUrl = (shortUrl) => {
-  return `${siteUrl}/${shortUrl}`;
-}
+    return `${siteUrl}/${shortUrl}`;
+};
 
 export default async function handler(req, res) {
     const client = await clientPromise;
 
     if (!siteUrl) {
-      res.status(500).json({ error: "SITE_URL env not found!" });
+        res.status(500).json({ error: 'SITE_URL env not found!' });
     }
 
     try {
-        const db = client.db("urlShortener");
-        const collection = db.collection("shortenedUrls");
+        const db = client.db('urlShortener');
+        const collection = db.collection('shortenedUrls');
 
         switch (req.method) {
-            case "POST":
-                const { originalUrl } = req.body;
+            case 'POST':
+                const { originalUrl, customShortUrl } = req.body;
                 if (originalUrl && validUrl.isUri(originalUrl)) { // Check if it's a valid URL
                     const found = await collection.findOne({ originalUrl });
 
                     if (found) {
-                      return res.status(200).json({ shortUrl: generateFullUrl(found.shortUrl) });
+                        return res.status(200).json({
+                            shortUrl: generateFullUrl(found.shortUrl),
+                            isDuplicate: true,
+                        });
                     }
 
                     let randomStr;
                     let isDuplicate;
                     do {
-                      randomStr = getRandomString(5);
-                      const shorten = await collection.findOne({ shortUrl: randomStr });
-                      isDuplicate = !!shorten;
+                        randomStr = customShortUrl || getRandomString(5);
+                        const shorten = await collection.findOne({ shortUrl: randomStr });
+                        isDuplicate = !!shorten;
+
+                        if (!!shorten && customShortUrl) {
+                            res.status(400).json({ error: 'Your custom short url is duplicate!' });
+                            break;
+                        }
                     } while (isDuplicate);
 
                     await collection.insertOne({
@@ -44,7 +52,7 @@ export default async function handler(req, res) {
                     });
                     res.status(200).json({ shortUrl: generateFullUrl(randomStr) });
                 } else {
-                    res.status(400).json({ error: "Invalid URL or Bad Request" });
+                    res.status(400).json({ error: 'Invalid URL or Bad Request' });
                 }
                 break;
             default:
@@ -52,13 +60,13 @@ export default async function handler(req, res) {
                 break;
         }
     } catch (error) {
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 }
 
 function getRandomString(length) {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let randomString = "";
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
     for (let i = 0; i < length; i++) {
         const randomIndex = Math.floor(Math.random() * charset.length);
         randomString += charset.charAt(randomIndex);
