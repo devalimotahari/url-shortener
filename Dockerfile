@@ -11,11 +11,10 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY package.json yarn.lock  package-lock.json* ./
+COPY package.json  package-lock.json* ./
 
 RUN npm config set registry https://repo.hmirror.ir/npm
-RUN yarn config set registry https://repo.hmirror.ir/npm
-RUN yarn install
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
