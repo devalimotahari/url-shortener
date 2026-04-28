@@ -31,7 +31,7 @@ ENV HOME_SITE_URL=${HOME_SITE_URL}
 ENV MONGODB_URI=${MONGODB_URI}
 ENV SITE_URL=${SITE_URL}
 
-RUN yarn build
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
