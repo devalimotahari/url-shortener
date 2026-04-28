@@ -14,9 +14,8 @@ WORKDIR /app
 COPY package.json yarn.lock  package-lock.json* ./
 
 RUN npm config set registry https://repo.hmirror.ir/npm
-RUN npm install -g yarn
 RUN yarn config set registry https://repo.hmirror.ir/npm
-RUN npm install
+RUN yarn install
 
 # Rebuild the source code only when needed
 FROM base AS builder
